@@ -4,10 +4,14 @@ import com.example.entity.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import java.util.List;
 
 import com.example.service.AccountService;
 import com.example.service.MessageService;
@@ -21,12 +25,12 @@ import com.example.service.MessageService;
 @RestController
 public class SocialMediaController {
     private final AccountService accountService;
-    // private final MessageService messageService;
+    private final MessageService messageService;
 
     @Autowired
-    public SocialMediaController(AccountService accountService){
+    public SocialMediaController(AccountService accountService, MessageService messageService){
         this.accountService = accountService;
-        // this.messageService = messageService;
+        this.messageService = messageService;
     }
 
     @PostMapping("/register")
@@ -51,5 +55,25 @@ public class SocialMediaController {
         } catch(IllegalArgumentException e){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+    }
+
+    @PostMapping("/messages")
+    public ResponseEntity<Message> createMessage(@RequestBody Message message){
+        try{
+            Message newMessage = messageService.createMessage(message.getPostedBy(), message.getMessageText(), message.getTimePostedEpoch());
+            return ResponseEntity.ok(newMessage);
+        }catch(IllegalArgumentException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @GetMapping("/messages")
+    public List<Message> getAllMessages(){
+        return messageService.getAllMessages();
+    }
+
+    @GetMapping("/messages/{message_id}")
+    public @ResponseBody Message getMessage(@PathVariable("message_id") Integer messageId){
+        
     }
 }
