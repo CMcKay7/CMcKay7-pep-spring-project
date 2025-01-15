@@ -4,7 +4,9 @@ import com.example.entity.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -73,7 +75,36 @@ public class SocialMediaController {
     }
 
     @GetMapping("/messages/{message_id}")
-    public @ResponseBody Message getMessage(@PathVariable("message_id") Integer messageId){
+    public ResponseEntity<Message> getMessageById(@PathVariable("message_id") Integer messageId){
+        return messageService.getMessageById(messageId)
+            .map(message -> ResponseEntity.ok(message))
+            .orElseGet(() -> ResponseEntity.ok().build());
+    }
+
+    @DeleteMapping("/messages/{message_id}")
+    public ResponseEntity<String> deleteMessageById(@PathVariable("message_id") Integer messageId){
+        long affectedRows = messageService.deleteMessageById(messageId);
+        if(affectedRows == 1){
+            return ResponseEntity.ok("1");
+        }else{
+            return ResponseEntity.ok().build();
+        }
+    }
+
+    @PatchMapping("/messages/{message_id}")
+    public ResponseEntity<?> updateMessage(@PathVariable("message_id") Integer messageId, @RequestBody Message message){
+        int rowsUpdated = messageService.updateMessageById(messageId, message.getMessageText());
+        if(rowsUpdated == 0){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(0);
+        }
+        return ResponseEntity.ok(rowsUpdated);
+    }
+
+    @GetMapping("/accounts/{account_id}/messages")
+    public ResponseEntity<List<Message>> getMessagesByAccountId(@PathVariable("account_id") Integer accountId){
+        List<Message> messages = messageService.getMessagesByAccountId(accountId);
+        return ResponseEntity.ok(messages);
+    }
         
     }
-}
+
